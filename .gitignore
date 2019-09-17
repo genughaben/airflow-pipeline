@@ -1,7 +1,10 @@
 # Byte-compiled / optimized / DLL files
+airflow-webserver.pid
 __pycache__/
 *.py[cod]
 *$py.class
+logs/*
+.idea/*
 
 # C extensions
 *.so
