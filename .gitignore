@@ -5,7 +5,7 @@ __pycache__/
 *$py.class
 logs/*
 .idea/*
-
+airflow.db
 # C extensions
 *.so
 
