@@ -1,5 +1,13 @@
 # Byte-compiled / optimized / DLL files
+airflow-scheduler.err
+airflow-scheduler.out
+airflow-scheduler.pid
+airflow-scheduler.log
+airflow-webserver.err
+airflow-webserver.out
 airflow-webserver.pid
+airflow-webserver.log
+airflow-webserver-monitor.pid
 __pycache__/
 *.py[cod]
 *$py.class
@@ -9,6 +17,8 @@ airflow.db
 # C extensions
 *.so
 aws_redshift/.aws
+
+
 # Distribution / packaging
 .Python
 build/
