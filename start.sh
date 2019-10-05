@@ -2,8 +2,9 @@
 
 # Start airflow
 export AIRFLOW_HOME=~/airflow
-airflow scheduler -D
 airflow webserver -p 8080 -D
+sleep 4
+airflow scheduler
 
 # Wait till airflow web-server is ready
 echo "Waiting for Airflow web server..."
