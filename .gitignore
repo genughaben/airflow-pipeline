@@ -8,6 +8,10 @@ airflow-webserver.out
 airflow-webserver.pid
 airflow-webserver.log
 airflow-webserver-monitor.pid
+airflow-worker.err
+airflow-worker.out
+airflow-worker.pid
+airflow-worker.log
 __pycache__/
 *.py[cod]
 *$py.class
