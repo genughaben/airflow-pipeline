@@ -23,6 +23,7 @@ class RedshiftCluster:
         self.DWH_DB_USER            = config.get("DWH","DB_USER")
         self.DWH_DB_PASSWORD        = config.get("DWH","DB_PASSWORD")
         self.DWH_PORT               = config.get("DWH","DB_PORT")
+        self.DWH_REGION             = config.get("DWH", "DWH_REGION")
 
         self.DWH_IAM_ROLE_NAME      = config.get("CLUSTER", "DWH_IAM_ROLE_NAME")
         self.DWH_CLUSTER_TYPE       = config.get("CLUSTER", "DWH_CLUSTER_TYPE")
@@ -37,28 +38,21 @@ class RedshiftCluster:
 
         self.ec2 = boto3.resource(
             'ec2',
-            region_name='us-west-2',
-            aws_access_key_id=self.KEY,
-            aws_secret_access_key=self.SECRET
-        )
-
-        self.s3 = boto3.resource(
-            's3',
-            region_name='us-west-2',
+            region_name=self.DWH_REGION,
             aws_access_key_id=self.KEY,
             aws_secret_access_key=self.SECRET
         )
 
         self.iam = boto3.client(
             'iam',
-            region_name='us-west-2',
+            region_name=self.DWH_REGION,
             aws_access_key_id=self.KEY,
             aws_secret_access_key=self.SECRET
         )
 
         self.redshift = boto3.client(
             'redshift',
-            region_name='us-west-2',
+            region_name=self.DWH_REGION,
             aws_access_key_id=self.KEY,
             aws_secret_access_key=self.SECRET
         )
