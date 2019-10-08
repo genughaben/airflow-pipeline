@@ -44,8 +44,7 @@ result_backend = db+postgresql://<user_name>@localhost:5432/airflow
 #### Setup Redshift cluster**
 
 ##### .aws
-Add your AWS key and secret.
-
+Create an .aws from aws_template
 ```
 > cd ~/airflow/aws_redshift
 > cp aws_template .aws
@@ -53,7 +52,14 @@ Add your AWS key and secret.
 Now, open .aws and add your AWS credentials.
 
 ##### dwh.cfg
+Create an dwh.cfg from dwh-template.cfg
+
+```
+> cd ~/airflow/aws_redshift
+> cp dwh-template.cfg dwh.cfg 
+```
 * Cluster setup works with given values, but you can customize them if you please
+
 
 ##### Trigger cluster setup
 **NB: if you start this, you pay money as for the number of instances outlined in dwh.cfg**
@@ -67,7 +73,12 @@ Amongst other info the DWH_ENDPOINT is print out.
 This is required for table schema creation and for a redshift connection in airflow.
 
 ##### Create table schema:
-* Copy the DWH_ENDPOINT from the terminal of the last step and enter it in dwh.cfg in section ETL for DWH_ENDPOINT, no quotes!
+* Update DWH_ENDPOINT in ETL, DWH and ENDPOINT section of your dwh.cfg with value from previous step from the terminal
+* Update DWH_ROLE in ENDPOINT section of your dwh.cfg with value from previous step from the terminal
+* Now, execute:
+```
+> python create_tables.py
+```
 
 #### Setup local airflow
 
@@ -113,15 +124,21 @@ Open your local airflow installation on: localhost:8080/admin
 * Port 5439
 
 
-### Start
+### Start Airflow ETL process
 
-##### AWS Redshift
-* You started the reshift cluster on setup.
+##### trigger manually
+* Go to localhost:8080/admin
+* Switch the DAG you want to execute "ON"
+* Now, click on the trigger symbol (a small play button)
+* You can observe the process by clicking on the DAGs name title in the third column and subsequent click on "Graph View"
+* Update the view using the "Refresh" Option to see progress
 
+##### configure automatic ETL triggering
 
 Implements a basic airflow ETL pipeline for a fictional music streaming app.
 
 
+## Further Reading
 Further reading about airflow and other workflow orchestrators:
 * https://github.com/pditommaso/awesome-pipeline
 * https://www.quora.com/Which-is-a-better-data-pipeline-scheduling-platform-Airflow-or-Luigi
