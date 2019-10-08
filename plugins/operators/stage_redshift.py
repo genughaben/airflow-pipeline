@@ -1,4 +1,5 @@
 from airflow.hooks.postgres_hook import PostgresHook
+from airflow.contrib.hooks.aws_hook import AwsHook
 from airflow.models import BaseOperator
 from airflow.utils.decorators import apply_defaults
 
@@ -7,20 +8,45 @@ class StageToRedshiftOperator(BaseOperator):
 
     @apply_defaults
     def __init__(self,
-                 # Define your operators params (with defaults) here
-                 # Example:
-                 # redshift_conn_id=your-connection-name
+                 redshift_conn_id="",
+                 aws_credentials_id="",
+                 region_name="",
+                 table="",
+                 s3_bucket="",
+                 s3_key="",
                  *args, **kwargs):
 
         super(StageToRedshiftOperator, self).__init__(*args, **kwargs)
-        # Map params here
-        # Example:
-        # self.conn_id = conn_id
+        self.redshift_conn_id = redshift_conn_id
+        self.aws_credentials_id = aws_credentials_id
+        self.region_name = region_name
+        self.table = table
+        self.s3_bucket = s3_bucket
+        self.s3_key = s3_key
+
+    def get_copy_statement(self, aws_credentials):
+        copy_sql = (
+                f"COPY {self.table} "
+                f"FROM 's3://{self.s3_bucket}/{self.s3_key}' "
+                f"FORMAT AS JSON 'auto' " 
+                f"ACCESS_KEY_ID '{aws_credentials.access_key}' "
+                f"SECRET_ACCESS_KEY '{aws_credentials.secret_key}' "
+                f"REGION '{self.region_name}'; "
+        )
+        return copy_sql
 
     def execute(self, context):
-        self.log.info('StageToRedshiftOperator not implemented yet')
+        awshook = AwsHook(aws_conn_id=self.aws_credentials_id)
+        aws_credentials = awshook.get_credentials(self.region_name)
+        redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
 
+        self.log.info("First, delete old data before copying new data..")
+        self.log.info(f"DELETE FROM {self.table};")
+        redshift.run(f"DELETE FROM {self.table};")
 
+        self.log.info(f"cred: {aws_credentials}")
 
-
-
+        self.log.info('Copy data from S3 to Redshift')
+        copy_stmt = self.get_copy_statement(aws_credentials)
+        self.log.info(copy_stmt)
+        redshift.run(copy_stmt)
