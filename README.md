@@ -111,7 +111,7 @@ You now need to restart Postgres entering:
 Open postgresql.conf entering:
 
 ```
-> sudo nano /etc/postgresql/9.5/main/postgresql.conf
+> sudo nano /etc/postgresql/10/main/postgresql.conf
 ```
 
 Update in the section 'CONNECTIONS AND AUTHENTICATION' listen_addresses from 'localhost' to '*'
