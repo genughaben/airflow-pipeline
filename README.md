@@ -97,7 +97,7 @@ In the end there should be:
 TYPE    DATABASE    USER    ADDRESS     METHOD
 ...
 # IPv4 local connections                            <- replace line after this with next line
-host    all         all     0.0.0.0/0   trust           <- use this line as replacement
+host    all         all     0.0.0.0/0   trust       <- use this line as replacement
 ```
 
 You now need to restart Postgres entering:
@@ -118,7 +118,7 @@ Update in the section 'CONNECTIONS AND AUTHENTICATION' listen_addresses from 'lo
 ```
 # — Connection Settings -
 #listen_addresses = ‘localhost’     # what IP address(es) to listen on;           <-- before
-listen_addresses  = ‘*’                     # for Airflow connection                            <-- after
+listen_addresses  = ‘*’             # for Airflow connection                      <-- after
 ```
 
 And restart Postgres again:
