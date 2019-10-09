@@ -87,7 +87,7 @@ airflow=>
 In order to allow airflow access to Postgres, pg_hba.conf needs to be configured:
 
 ```
-> sudo nano /etc/postgresql/9.5/main/pg_hba.conf
+> sudo nano /etc/postgresql/10/main/pg_hba.conf
 ```
 
 Change int entry 'IPv4 local connections' the ADDRESS to 0.0.0.0/0 and the METHOD to trust.
