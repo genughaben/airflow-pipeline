@@ -1,118 +1,121 @@
-create_artist_table = ("""
-CREATE TABLE IF NOT EXISTS public.artists (
-	artistid varchar(256) NOT NULL,
-	name varchar(256),
-	location varchar(256),
-	lattitude numeric(18,0),
-	longitude numeric(18,0)
-); """)
-
-create_songplays_table = ("""
-CREATE TABLE IF NOT EXISTS public.songplays (
-	playid bigint IDENTITY(0,1),
-	start_time BIGINT NOT NULL,
-	userid int4 NOT NULL,
-	"level" varchar(256),
-	songid varchar(256),
-	artistid varchar(256),
-	sessionid int4,
-	location varchar(256),
-	user_agent varchar(256),
-	CONSTRAINT songplays_pkey PRIMARY KEY (playid)
-); """)
-
-create_songs_table = ("""
-CREATE TABLE IF NOT EXISTS public.songs (
-	songid varchar(256) NOT NULL,
-	title varchar(256),
-	artistid varchar(256),
-	"year" int4,
-	duration numeric(18,0),
-	CONSTRAINT songs_pkey PRIMARY KEY (songid)
-);
-""")
-
-create_staging_events_table = ("""
-CREATE TABLE IF NOT EXISTS public.staging_events (
-	artist varchar(256),
-	auth varchar(256),
-	firstname varchar(256),
-	gender varchar(256),
-	iteminsession int4,
-	lastname varchar(256),
-	length numeric(18,0),
-	"level" varchar(256),
-	location varchar(256),
-	"method" varchar(256),
-	page varchar(256),
-	registration numeric(18,0),
-	sessionid int4,
-	song varchar(256),
-	status int4,
-	ts int8,
-	useragent varchar(256),
-	userid int4
-);
-""")
-
-create_staging_songs_table = ("""
-CREATE TABLE IF NOT EXISTS public.staging_songs (
-	num_songs int4,
-	artist_id varchar(256),
-	artist_name varchar(256),
-	artist_latitude numeric(18,0),
-	artist_longitude numeric(18,0),
-	artist_location varchar(256),
-	song_id varchar(256),
-	title varchar(256),
-	duration numeric(18,0),
-	"year" int4
-);
-""")
-
-create_songs_time = ("""
-CREATE TABLE IF NOT EXISTS public."time" (
-	start_time timestamp NOT NULL,
-	"hour" int4,
-	"day" int4,
-	week int4,
-	"month" varchar(256),
-	"year" int4,
-	weekday varchar(256),
-	CONSTRAINT time_pkey PRIMARY KEY (start_time)
-) ;
-""")
-
-create_users_table = ("""
-CREATE TABLE IF NOT EXISTS public.users (
-	userid int4 NOT NULL,
-	first_name varchar(256),
-	last_name varchar(256),
-	gender varchar(256),
-	"level" varchar(256),
-	CONSTRAINT users_pkey PRIMARY KEY (userid)
-);
-""")
-
 # DROP TABLES
 
-staging_events_table_drop = "DROP TABLE IF EXISTS public.staging_events;"
-staging_songs_table_drop = "DROP TABLE IF EXISTS public.staging_songs;"
-songplay_table_drop = "DROP TABLE IF EXISTS public.songplays;"
-user_table_drop = "DROP TABLE IF EXISTS public.users;"
-song_table_drop = "DROP TABLE IF EXISTS  public.songs;"
-artist_table_drop = "DROP TABLE IF EXISTS public.artists;"
-time_table_drop = "DROP TABLE IF EXISTS public.time;"
+staging_events_table_drop = "DROP TABLE IF EXISTS staging_events;"
+staging_songs_table_drop = "DROP TABLE IF EXISTS staging_songs;"
+songplay_table_drop = "DROP TABLE IF EXISTS songplays;"
+user_table_drop = "DROP TABLE IF EXISTS users;"
+song_table_drop = "DROP TABLE IF EXISTS  songs;"
+artist_table_drop = "DROP TABLE IF EXISTS artists;"
+time_table_drop = "DROP TABLE IF EXISTS time;"
 
-create_table_queries = [
-	create_artist_table,
-	create_songplays_table,
-	create_songs_table,
-	create_staging_events_table,
-	create_staging_songs_table,
-	create_songs_time,
-	create_users_table
-]
+
+# CREATE TABLES
+
+# Staging Tables
+
+staging_events_table_create = ("""
+    CREATE TABLE IF NOT EXISTS staging_events (
+        id             BIGINT IDENTITY(0,1)   PRIMARY KEY,
+        artist         VARCHAR,
+        auth           VARCHAR,
+        firstName      VARCHAR,
+        gender         VARCHAR(3),
+        itemInSession  SMALLINT,
+        lastName       VARCHAR,
+        length         FLOAT,
+        level          VARCHAR,
+        location       VARCHAR,
+        method         VARCHAR(3),
+        page           VARCHAR,
+        registration   FLOAT,
+        sessionId      BIGINT,
+        song           VARCHAR,
+        status         SMALLINT,
+        ts             BIGINT,
+        userAgent      VARCHAR,
+        userId         INTEGER
+    );
+""")
+
+# {"num_songs": 1, "artist_id": "ARJIE2Y1187B994AB7", "artist_latitude": null, "artist_longitude": null, "artist_location": "", "artist_name": "Line Renaud", "song_id": "SOUPIRU12A6D4FA1E1", "title": "Der Kleine Dompfaff", "duration": 152.92036, "year": 0}
+
+staging_songs_table_create = ("""
+    CREATE TABLE IF NOT EXISTS staging_songs (
+        id               INTEGER IDENTITY(0,1)   PRIMARY KEY,
+        num_songs        INTEGER,
+        artist_id        VARCHAR,
+        artist_latitude  FLOAT,
+        artist_longitude FLOAT,
+        artist_location  VARCHAR,
+        artist_name      VARCHAR,
+        song_id          VARCHAR,
+        title            VARCHAR,
+        duration         FLOAT,
+        year             SMALLINT
+    );
+""")
+
+# CREATE FINAL TABLE
+
+user_table_create = ("""
+    CREATE TABLE IF NOT EXISTS users (
+         user_id         INTEGER       PRIMARY KEY,
+         first_name      VARCHAR       NOT NULL,
+         last_name       VARCHAR       NOT NULL,
+         gender          VARCHAR(4),
+         level           VARCHAR(20)
+     ) diststyle all;
+""")
+
+song_table_create = ("""
+    CREATE TABLE IF NOT EXISTS songs (
+         song_id         VARCHAR       PRIMARY KEY,
+         title           VARCHAR       NOT NULL,
+         artist_id       VARCHAR       NOT NULL DISTKEY SORTKEY,
+         year            SMALLINT,
+         duration        FLOAT
+     );
+""")
+
+artist_table_create = ("""
+    CREATE TABLE IF NOT EXISTS artists (
+         artist_id       VARCHAR       PRIMARY KEY,
+         name            VARCHAR       NOT NULL,
+         location        VARCHAR,
+         latitude        FLOAT,
+         longitude       FLOAT
+     ) diststyle all;
+""")
+
+time_table_create = ("""
+    CREATE TABLE IF NOT EXISTS time (
+         start_time      BIGINT        PRIMARY KEY SORTKEY,
+         hour            SMALLINT      NOT NULL,
+         day             SMALLINT      NOT NULL,
+         week            SMALLINT      NOT NULL,
+         month           SMALLINT      NOT NULL,
+         year            SMALLINT      NOT NULL,
+         week_day        SMALLINT       NOT NULL
+     ) diststyle all;
+""")
+
+songplay_table_create = ("""
+    CREATE TABLE IF NOT EXISTS songplays (
+        id               BIGINT        IDENTITY(0,1) PRIMARY KEY,
+        start_time       BIGINT        NOT NULL REFERENCES time(start_time) SORTKEY,
+        user_id          INTEGER       REFERENCES users(user_id),
+        level            VARCHAR       NOT NULL,
+        song_id          VARCHAR       NOT NULL REFERENCES songs(song_id) DISTKEY,
+        artist_id        VARCHAR       NOT NULL REFERENCES artists(artist_id) ,
+        session_id       BIGINT,
+        location         VARCHAR,
+        user_agent       VARCHAR
+     );
+""")
+
+
+# QUERY LISTS
 
 drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
+create_table_queries = [staging_events_table_create, staging_songs_table_create, user_table_create, song_table_create, artist_table_create, time_table_create, songplay_table_create]
 
