@@ -238,7 +238,8 @@ This is required for table schema creation and for a redshift connection in airf
 ##### Configure Airflow via UI
   
 Open your local airflow installation on: localhost:8080/admin  
-**Add Connections via Admin -> Connections**
+
+*Add Connections via Admin -> Connections*
 
 1. Connection: aws_credentials
 * Conn ID: aws_credentials
