@@ -3,11 +3,8 @@ import os
 import logging
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
-from airflow.operators import (StageToRedshiftOperator, LoadFactOperator, LoadDimensionOperator)
-#from airflow.operators import LoadFactOperator
-#from airflow.operators import LoadDimensionOperator
-
-from helpers import SqlQueries
+from airflow.operators import (CreateDatabaseSchema, StageToRedshiftOperator,
+                               LoadFactOperator, LoadDimensionOperator)
 
 default_args = {
     'depends_on_past': False,
@@ -22,7 +19,14 @@ dag = DAG(
     schedule_interval="@monthly"
 )
 
-#start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
+start_operator = DummyOperator(task_id='Begin_execution',  dag=dag)
+
+re_create_db_schema = CreateDatabaseSchema(
+    task_id="Drop_and_create_db_schema",
+    redshift_conn_id="redshift",
+    to_exec=True,
+    dag=dag
+)
 
 stage_events_to_redshift = StageToRedshiftOperator(
     task_id="Stage_events",
@@ -80,20 +84,19 @@ load_dim_artists_table = LoadDimensionOperator(
     dag=dag
 )
 
+end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 
-#end_operator = DummyOperator(task_id='Stop_execution',  dag=dag)
 
-
-#start_operator >> stage_events_to_redshift
-#start_operator >> stage_songs_to_redshift
-#stage_events_to_redshift >> end_operator
-#stage_songs_to_redshift >> end_operator
-
-stage_events_to_redshift
-stage_songs_to_redshift
+start_operator >> re_create_db_schema
+re_create_db_schema >> stage_events_to_redshift
+re_create_db_schema >> stage_songs_to_redshift
 stage_events_to_redshift >> load_songplays_table
 stage_songs_to_redshift >> load_songplays_table
 load_songplays_table >> load_dim_time_table
 load_songplays_table >> load_dim_users_table
 load_songplays_table >> load_dim_songs_table
 load_songplays_table >> load_dim_artists_table
+load_dim_time_table >> end_operator
+load_dim_users_table >> end_operator
+load_dim_songs_table >> end_operator
+load_dim_artists_table >> end_operator

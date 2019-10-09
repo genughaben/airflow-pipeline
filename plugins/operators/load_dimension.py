@@ -19,9 +19,13 @@ class LoadDimensionOperator(BaseOperator):
 
     def execute(self, context):
         redshift = PostgresHook(self.redshift_conn_id)
-        sql_query = insert_table_queries[self.table]
 
+        self.log.info('Remove pre-existing data...')
+        redshift.run(f'DELETE FROM {self.table}')
+
+        sql_query = insert_table_queries[self.table]
         self.log.info(f"Load data to table {self.table} executing {sql_query} ...")
         ret = redshift.run(sql_query)
+
         self.log.info(f"Insert data to table {self.table} finished.")
         return ret

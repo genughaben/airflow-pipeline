@@ -16,12 +16,15 @@ class LoadFactOperator(BaseOperator):
         self.redshift_conn_id = redshift_conn_id
 
     def execute(self, context):
-        self.log.info('Insert songplay data...')
         redshift = PostgresHook(postgres_conn_id=self.redshift_conn_id)
-        insert_sql = insert_table_queries["songplays"]
 
-        self.log.info(f'Execute: {insert_sql}')
+        self.log.info('Remove pre-existing data...')
+        redshift.run("DELETE FROM songplays")
+
+        insert_sql = insert_table_queries["songplays"]
+        self.log.info(f'Insert songplay data executing {insert_sql}...')
         ret = redshift.run(insert_sql)
+
         self.log.info(f"Insert songplays data finished.")
         return ret
 

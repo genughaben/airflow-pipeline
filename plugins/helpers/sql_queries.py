@@ -1,66 +1,125 @@
-class SqlQueries:
-    songplay_table_insert = ("""
-        SELECT
-                md5(events.sessionid || events.start_time) songplay_id,
-                events.start_time, 
-                events.userid, 
-                events.level, 
-                songs.song_id, 
-                songs.artist_id, 
-                events.sessionid, 
-                events.location, 
-                events.useragent
-                FROM (SELECT TIMESTAMP 'epoch' + ts/1000 * interval '1 second' AS start_time, *
-            FROM staging_events
-            WHERE page='NextSong') events
-            LEFT JOIN staging_songs songs
-            ON events.song = songs.title
-                AND events.artist = songs.artist_name
-                AND events.length = songs.duration
-    """)
+# DROP TABLES
 
-    user_table_insert = ("""
-        SELECT distinct userid, firstname, lastname, gender, level
-        FROM staging_events
-        WHERE page='NextSong'
-    """)
-
-    song_table_insert = ("""
-        SELECT distinct song_id, title, artist_id, year, duration
-        FROM staging_songs
-    """)
-
-    artist_table_insert = ("""
-        SELECT distinct artist_id, artist_name, artist_location, artist_latitude, artist_longitude
-        FROM staging_songs
-    """)
-
-    time_table_insert = ("""
-        SELECT start_time, extract(hour from start_time), extract(day from start_time), extract(week from start_time), 
-               extract(month from start_time), extract(year from start_time), extract(dayofweek from start_time)
-        FROM songplays
-    """)
+staging_events_table_drop = "DROP TABLE IF EXISTS staging_events;"
+staging_songs_table_drop = "DROP TABLE IF EXISTS staging_songs;"
+songplay_table_drop = "DROP TABLE IF EXISTS songplays;"
+user_table_drop = "DROP TABLE IF EXISTS users;"
+song_table_drop = "DROP TABLE IF EXISTS  songs;"
+artist_table_drop = "DROP TABLE IF EXISTS artists;"
+time_table_drop = "DROP TABLE IF EXISTS time;"
 
 
-# INSERT DATA INTO STAGING TABLES
+# CREATE TABLES
 
-# staging_events_copy = (
-#     f"COPY staging_events "
-#     f"FROM {LOG_DATA} "
-#     f"CREDENTIALS 'aws_iam_role={DWH_ROLE_ARN}' "
-#     f"FORMAT as JSON {LOG_JSONPATH} "
-#     f"STATUPDATE ON "
-#     f"region 'eu-west-1';"
-# )
-#
-# staging_songs_copy = (
-#     f"COPY staging_songs FROM {SONG_DATA} "
-#     f"CREDENTIALS 'aws_iam_role={DWH_ROLE_ARN}' "
-#     f"FORMAT as JSON 'auto' "
-#     f"ACCEPTINVCHARS AS '^' "
-#     f"STATUPDATE ON "
-#     f"region 'eu-west-1';"
-# )
+# Staging Tables
+
+staging_events_table_create = ("""
+    CREATE TABLE IF NOT EXISTS staging_events (
+        id             BIGINT IDENTITY(0,1)   PRIMARY KEY,
+        artist         VARCHAR,
+        auth           VARCHAR,
+        firstName      VARCHAR,
+        gender         VARCHAR(3),
+        itemInSession  SMALLINT,
+        lastName       VARCHAR,
+        length         FLOAT,
+        level          VARCHAR,
+        location       VARCHAR,
+        method         VARCHAR(3),
+        page           VARCHAR,
+        registration   FLOAT,
+        sessionId      BIGINT,
+        song           VARCHAR,
+        status         SMALLINT,
+        ts             BIGINT,
+        userAgent      VARCHAR,
+        userId         VARCHAR
+    );
+""")
+
+# {"num_songs": 1, "artist_id": "ARJIE2Y1187B994AB7", "artist_latitude": null, "artist_longitude": null, "artist_location": "", "artist_name": "Line Renaud", "song_id": "SOUPIRU12A6D4FA1E1", "title": "Der Kleine Dompfaff", "duration": 152.92036, "year": 0}
+
+staging_songs_table_create = ("""
+    CREATE TABLE IF NOT EXISTS staging_songs (
+        id               INTEGER IDENTITY(0,1)   PRIMARY KEY,
+        num_songs        INTEGER,
+        artist_id        VARCHAR,
+        artist_latitude  FLOAT,
+        artist_longitude FLOAT,
+        artist_location  VARCHAR,
+        artist_name      VARCHAR,
+        song_id          VARCHAR,
+        title            VARCHAR,
+        duration         FLOAT,
+        year             SMALLINT
+    );
+""")
+
+# CREATE FINAL TABLE
+
+user_table_create = ("""
+    CREATE TABLE IF NOT EXISTS users (
+         user_id         VARCHAR       PRIMARY KEY,
+         first_name      VARCHAR       NOT NULL,
+         last_name       VARCHAR       NOT NULL,
+         gender          VARCHAR(4),
+         level           VARCHAR(20)
+     ) diststyle all;
+""")
+
+song_table_create = ("""
+    CREATE TABLE IF NOT EXISTS songs (
+         song_id         VARCHAR       PRIMARY KEY,
+         title           VARCHAR       NOT NULL,
+         artist_id       VARCHAR       NOT NULL DISTKEY SORTKEY,
+         year            SMALLINT,
+         duration        FLOAT
+     );
+""")
+
+artist_table_create = ("""
+    CREATE TABLE IF NOT EXISTS artists (
+         artist_id       VARCHAR       PRIMARY KEY,
+         name            VARCHAR       NOT NULL,
+         location        VARCHAR,
+         latitude        FLOAT,
+         longitude       FLOAT
+     ) diststyle all;
+""")
+
+time_table_create = ("""
+    CREATE TABLE IF NOT EXISTS time (
+         start_time      BIGINT        PRIMARY KEY SORTKEY,
+         hour            SMALLINT      NOT NULL,
+         day             SMALLINT      NOT NULL,
+         week            SMALLINT      NOT NULL,
+         month           SMALLINT      NOT NULL,
+         year            SMALLINT      NOT NULL,
+         week_day        SMALLINT       NOT NULL
+     ) diststyle all;
+""")
+
+songplay_table_create = ("""
+    CREATE TABLE IF NOT EXISTS songplays (
+        id               BIGINT        IDENTITY(0,1) PRIMARY KEY,
+        start_time       BIGINT        NOT NULL REFERENCES time(start_time) SORTKEY,
+        user_id          VARCHAR       REFERENCES users(user_id),
+        level            VARCHAR       NOT NULL,
+        song_id          VARCHAR       NOT NULL REFERENCES songs(song_id) DISTKEY,
+        artist_id        VARCHAR       NOT NULL REFERENCES artists(artist_id) ,
+        session_id       BIGINT,
+        location         VARCHAR,
+        user_agent       VARCHAR
+     );
+""")
+
+
+# QUERY LISTS
+
+drop_table_queries = [staging_events_table_drop, staging_songs_table_drop, songplay_table_drop, user_table_drop, song_table_drop, artist_table_drop, time_table_drop]
+create_table_queries = [staging_events_table_create, staging_songs_table_create, user_table_create, song_table_create, artist_table_create, time_table_create, songplay_table_create]
+
+
 
 copy_sql = """
     COPY {}
@@ -115,7 +174,7 @@ user_table_insert = ("""
         gender              AS gender,
         level               AS level
     FROM staging_events
-    WHERE page = 'NextSong' AND user_id IS NOT NULL;
+    WHERE page='NextSong' AND userId IS NOT NULL;
 """)
 
 song_table_insert = ("""
