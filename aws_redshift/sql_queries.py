@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS public.artists (
 
 create_songplays_table = ("""
 CREATE TABLE IF NOT EXISTS public.songplays (
-	playid varchar(32) NOT NULL,
-	start_time timestamp NOT NULL,
+	playid bigint IDENTITY(0,1),
+	start_time BIGINT NOT NULL,
 	userid int4 NOT NULL,
 	"level" varchar(256),
 	songid varchar(256),
