@@ -194,7 +194,7 @@ PyYAML==3.13
 pyzmq==18.0.0
 qtconsole==4.5.4
 requests==2.21.0
-rsa==3.4.2
+rsa==4.1
 ruamel-yaml==0.15.46
 s3transfer==0.2.1
 scipy==1.2.1
