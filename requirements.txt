@@ -5,7 +5,7 @@ anaconda-client==1.6.14
 anaconda-project==0.8.2
 aniso8601==6.0.0
 ansible==2.7.6
-apache-airflow==1.10.5
+apache-airflow==2.1.2
 apispec==2.0.2
 asn1crypto==0.24.0
 astroid==1.6.3
